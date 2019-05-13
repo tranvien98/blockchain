@@ -19,10 +19,9 @@ posts = []
 
 def fetch_posts():
     """
-    Function to fetch the chain from a blockchain node, parse the
-    data and store it locally.
+    lấy chuỗi từ peer
     """
-    get_chain_address = "{}/local_chain".format(CONNECTED_NODE_ADDRESS)
+    get_chain_address = "{}/concensus".format(CONNECTED_NODE_ADDRESS)
     response = requests.get(get_chain_address)
     if response.status_code == 200:
         content = []
@@ -51,7 +50,7 @@ def index():
 @app.route('/submit', methods=['POST'])
 def submit_textarea():
     """
-    Endpoint to create a new transaction via our application.
+    tạo giao dịch mới khi ấn submit
     """
     auctioneer = request.form["auctioneer"]
     post_item = request.form["item"]

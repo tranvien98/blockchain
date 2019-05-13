@@ -9,7 +9,7 @@ app = Flask(__name__)
 """
 uncomfirmed_transactions = ['Hiếu gửi Hiếu 1 BTC', 'Hiếu bán 1 BTC với giá 8097$',
                             'Hiếu dùng tiền mua 50 quyển sách và một máy đọc sách']
-                            """
+"""
 anchors = set()
 anchors.add('127.0.0.1:5001')
 
@@ -42,25 +42,9 @@ def mine():
         except:
             print("cannot connect anchor {}". format(anchor))
 
-    # previous_hash = last_hash
-    # difficult = last_block['difficult']
-    # transaction_counter = len(uncomfirmed_transactions)
-    # index = last_block['index'] + 1
-
-    # new_block = Block(
-    #     index, previous_hash, 0, transaction_counter, difficult, uncomfirmed_transactions
-    # )
 
     uncomfirmed_transactions = []
 
-    # Blockchain.proof_of_work(new_block)
-
-    # for anchor in anchors:
-    #     try:
-    #         url = 'http://{}/broadcast_block'.format(anchor)
-    #         http_response = requests.post(url, json=new_block.__dict__)
-    #     except:
-    #         print("cannot connect anchor {}". format(anchor))
 
     if result == -1:
         return "No transactions to mine"
@@ -85,6 +69,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     port = args.port
 
-    # print('My ip address : ' + get_ip())
-
     app.run(port=port, debug=True, threaded=True)
+
+
