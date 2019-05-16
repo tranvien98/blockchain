@@ -15,7 +15,7 @@ class Blockchain(object):
     def from_list(data_chain):
         blockchain = Blockchain()
         blockchain.chain = []
-
+        blockchain.unconfirmed_transactions = []
         for data_block in data_chain:
             block = Block.from_dict(data_block)
             blockchain.chain.append(block)
@@ -30,70 +30,82 @@ class Blockchain(object):
         
         return chain_data
 
-    @staticmethod
-    def proof_of_work(block):
-        difficult = block.difficult
-        block.nonce = 0
+    def create_genesis_block(self):
+        """
+        Tạo khối genesis và gắn nó vào chuỗi.
+      
+        """
+        genesis_block = Block(0, [], time.time(), "0")
 
-        hash = block.compute_hash()
+        self.proof_of_work(genesis_block)
 
-        while not hash.startswith('0'*difficult):
-            block.nonce += 1
-            hash = block.compute_hash()
+        genesis_block.hash = genesis_block.compute_hash()
 
-        return hash
-
-    def get_last_block(self):
+        self.chain.append(genesis_block)
+    @property
+    def last_block(self):
         return self.chain[-1]
 
-    @staticmethod
-    def is_valid_block(block, previous_block):
-        difficult = block.difficult
+    def add_block(self, block, proof):
+        """
+        Thêm khối vào chuỗi sau khi xác minh.
+        Xác minh bao gồm:
+        * Kiểm tra proof là hợp lệ.
+        * previous_hash đã tham chiếu trong khối và hàm băm của khối mới nhất
+          trong chuỗi.
+        """
+        previous_hash = self.last_block.hash
 
-        if block.index - previous_block.index != 1:
-            print("index error")
-            return False
-        elif previous_block.compute_hash() != block.previous_hash:
-            print("chain error")
-            return False
-        elif not block.compute_hash().startswith('0'*difficult):
-            print("invalid proof of work")
-            return False
-        elif block.timestamp <= previous_block.timestamp:
-            # print(block.block_header.timestamp)
-            # print(previous_block.block_header.timestamp)
-            print("cannot chain 2 block same time")
+        if previous_hash != block.previous_hash:
             return False
 
+        if not Blockchain.is_valid_proof(block, proof):
+            return False
+
+        block.hash = proof
+        self.chain.append(block)
         return True
 
-    def add_block(self, block):
-        previous_block = self.get_last_block()
+    def proof_of_work(self, block):
+       
+        block.nonce = 0
 
-        if self.is_valid_block(block, previous_block):
-            self.chain.append(block)
-            return True
-        else:
-            return False
+        computed_hash = block.compute_hash()
+        while not computed_hash.startswith('0' * Blockchain.difficulty):
+            block.nonce += 1
+            computed_hash = block.compute_hash()
 
-    def is_valid_chain(self):
-        """
-        Check if given blockchain is valid
-        """
-        previous_block = self.chain[0]
-        current_index = 1
+        return computed_hash
 
-        while current_index < len(self.chain):
-
-            block = self.chain[current_index]
-
-            if not self.is_valid_block(block, previous_block):
-                return False
-
-            previous_block = block
-            current_index += 1
-
-        return True
-    #add transaction
     def add_new_transaction(self, transaction):
         self.unconfirmed_transactions.append(transaction)
+
+    @classmethod
+    def is_valid_proof(cls, block, block_hash):
+        """
+        Check if block_hash is valid hash of block and satisfies
+        the difficulty criteria.
+        """
+
+        return (block_hash.startswith('0' * Blockchain.difficulty) and
+                block_hash == block.compute_hash())
+
+    @classmethod
+    def check_chain_validity(cls, chain):
+        result = True
+        previous_hash = "0"
+
+        for block in chain:
+            block_hash = block.hash
+            # remove the hash field to recompute the hash again
+            # using `compute_hash` method.
+            delattr(block, "hash")
+
+            if not cls.is_valid_proof(block, block_hash) or \
+                    previous_hash != block.previous_hash:
+                result = False
+                break
+
+            block.hash, previous_hash = block_hash, block_hash
+
+        return result

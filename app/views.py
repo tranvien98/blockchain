@@ -23,7 +23,7 @@ def fetch_posts():
     """
     lấy chuỗi từ peer và phân tích dữ liệu
     """
-    get_chain_address = "{}/consensus".format(CONNECTED_NODE_ADDRESS)
+    get_chain_address = "{}/open_auctions".format(CONNECTED_NODE_ADDRESS)
     """
     response = requests.get(get_chain_address)
     if response.status_code == 200:

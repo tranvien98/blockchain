@@ -8,85 +8,140 @@ app = Flask(__name__)
 
 
 anchors = set()
-anchors.add('127.0.0.1:5001')
 
+# the address to other participating members of the network
+peers = set()
 
-@app.route('/new_transaction', methods=['POST'])
-def new_transaction():
-    tx_data = request.get_json()
-    required_fields = ["auctioneer", "item", "price", "bidder"]
+# endpoint to add new peers to the network.
+@app.route('/add_node', methods=['POST'])
+def register_new_peers():
+    data = request.get_json()
 
-    for field in required_fields:
-        if not tx_data.get(field):
-            return "Invlaid transaction data", 404
+    if not data:
+        return 'Invalid data', 400
 
-    tx_data["timestamp"] = time.time()
+    request_addr = data['ipaddress']
+    port = data['port']
+    node = request_addr + ':' + str(port)
 
-    blockchain.add_new_transaction(tx_data)
+    if not node:
+        return "Invalid data", 400
 
-    return "Success", 201
-
-
-@app.route('/get_transaction', methods=['POST'])
-def get_transaction():
-    tx_data = request.get_json()
-    required_fields = ["auctioneer", "item", "price", "bidder", "timestamp"]
-
-    for field in required_fields:
-        if not tx_data.get(field):
-            return "Invalid transaction data", 404
-
-    blockchain.add_new_transaction(tx_data)
+    peers.add(node)
 
     return "Success", 201
-@app.route('/mine', methods=['GET', 'POST'])
-def mine():
-    """
-    Tạo block mới từ uncomfirmed_transactions
 
+
+@app.route('/broadcast_block', methods=['POST'])
+def announce_new_block():
     """
-    result = -1
-    global uncomfirmed_transactions
-    for anchor in anchors:
+    A function to announce to the network once a block has been mined.
+    Other blocks can simply verify the proof of work and add it to their
+    respective chains.
+    """
+    block = Block.fromDict(request.get_json())
+    if not block:
+    	return "Invalid data at announce_new_block", 400
+
+    request_addr = get_ip(request.remote_addr)
+
+    offline_node = []
+
+    for peer in peers:
         try:
-            url = 'http://{}/concensus'.format(anchor)
-            http_response = requests.get(url)
-            last_block = http_response.json()['last_block']
-            last_hash = http_response.json()['last_hash']
-            difficult = last_block['difficult']
-            transaction_counter = len(uncomfirmed_transactions)
-            index = last_block['index'] + 1
-            result = index
-            new_block = Block(
-                index, last_hash, 0, transaction_counter, difficult, uncomfirmed_transactions
-            )
-            
-            Blockchain.proof_of_work(new_block)
-            url = 'http://{}/broadcast_block'.format(anchor)
-            http_response = requests.post(url, json=new_block.__dict__)
-        except:
-            print("cannot connect anchor {}". format(anchor))
+            if peer.find(request_addr) != -1:
+                continue
+            url = "http://{}/add_block".format(peer)
+            requests.post(url, json=block.__dict__)
+        except requests.exceptions.ConnectionError:
+            print('Cant connect to node {}. Remove it from peers list'.format(peer))
+            offline_node.append(peer)
 
-    uncomfirmed_transactions = []
+    for peer in offline_node:
+        peers.remove(peer)
+
+    return "Success", 201
 
 
-    if result == -1:
-        return jsonify({"No transaction to mine"})
-    return jsonify({"response": "Block #{} is mined.".format(result)})
-
-
-@app.route('/order', methods=['GET', 'POST'])
-def line_up():
+@app.route('/broadcast_transaction', methods=['POST'])
+def announce_new_transaction():
     """
-    Nhận yêu cầu thêm transaction từ general node và thêm vào hàng đợi
-
+    A function to announce to the network once a transaction has been added.
+    Other blocks can simply verify the proof of work and add it to their
+    respective chains.
     """
-    pass
+    data = request.get_json()
+    if not data:
+        return "Invalid data at announce_new_block", 400
+
+    request_addr = get_ip(request.remote_addr)
+
+    offline_node = []
+
+    for peer in peers:
+        try:
+            if peer.find(request_addr) != -1:
+                continue
+            url = "http://{}/get_transaction".format(peer)
+            requests.post(url, json=data)
+        except requests.exceptions.ConnectionError:
+            print('Cant connect to node {}. Remove it from peers list'.format(peer))
+            offline_node.append(peer)
+
+    for peer in offline_node:
+        peers.remove(peer)
+
+    return "Success", 201
+
+
+@app.route('/consensus', methods=['GET'])
+def consensus():
+    """
+    Our simple consensus algorithm. If a longer valid chain is
+    found, our chain is replaced with it.
+    """
+    longest_chain = Blockchain()
+    current_len = len(longest_chain.chain)
+
+    offline_node = []
+
+    for peer in peers:
+        try:
+            response = requests.get('http://{}/local_chain'.format(peer))
+            length = response.json()['length']
+            chain = response.json()['chain']
+            new_blockchain = Blockchain.fromList(chain)
+
+            if length > current_len and longest_chain.check_chain_validity(new_blockchain.chain):
+                current_len = length
+                longest_chain = new_blockchain
+        except requests.exceptions.ConnectionError:
+            print('Cant connect to node {}. Remove it from peers list'.format(peer))
+            offline_node.append(peer)
+
+    for peer in offline_node:
+        peers.remove(peer)
+
+    chain_data = []
+
+    for block in longest_chain.chain:
+        chain_data.append(block.__dict__)
+
+    return jsonify({"length": len(chain_data),
+                    "chain": chain_data})
+
+#in ra số lượng node
+@app.route('/list_nodes', methods=['GET', 'POST'])
+def get_node():
+    result = {
+        'Nodes in System': list(peers),
+        'Count of Nodes': len(peers)
+    }
+    return jsonify(result)
 
 
 if __name__ == '__main__':
-    from argparse import ArgumentParser
-
+      from argparse import ArgumentParser
     parser = ArgumentParser()
     parser.add_argument('-p', '--port', default=5002,
                         type=int, help='port to listen on')
@@ -94,5 +149,7 @@ if __name__ == '__main__':
     port = args.port
 
     app.run(port=port, debug=True, threaded=True)
+
+
 
 
