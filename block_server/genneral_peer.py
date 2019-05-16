@@ -6,6 +6,7 @@ Chưa làm các service liên quan đến transaction
 - Truy xuất dữ liệu từ block chain 
 - Định nghĩa chain-code (smart contract)
 """
+import time
 import requests
 from flask import Flask, jsonify, request
 
@@ -18,6 +19,7 @@ anchors.add('127.0.0.1:5001')
 orders = set()
 orders.add('127.0.0.1:5002')
 blockchain = Blockchain()
+CONNECT_ADD_NODE = "http://127.0.0.1:5000"
 
 
 @app.route('/register')
@@ -137,6 +139,11 @@ def get_transaction():
 
     return "Success", 201
 
+# tham gia vao mang
+
+
+    
+
 if __name__ == '__main__':
     from argparse import ArgumentParser
 
@@ -145,7 +152,4 @@ if __name__ == '__main__':
                         type=int, help='port to listen on')
     args = parser.parse_args()
     port = args.port
-
-    # print('My ip address : ' + get_ip())
-
     app.run(port=port, debug=True, threaded=True)

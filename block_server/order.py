@@ -5,15 +5,40 @@ from block import Block
 from blockchain import Blockchain
 
 app = Flask(__name__)
-# Tạm thời để transaction là string sau này phải định nghĩa lai và có thêm api để thêm transaction
-"""
-uncomfirmed_transactions = ['Hiếu gửi Hiếu 1 BTC', 'Hiếu bán 1 BTC với giá 8097$',
-                            'Hiếu dùng tiền mua 50 quyển sách và một máy đọc sách']
-"""
+
+
 anchors = set()
 anchors.add('127.0.0.1:5001')
 
 
+@app.route('/new_transaction', methods=['POST'])
+def new_transaction():
+    tx_data = request.get_json()
+    required_fields = ["auctioneer", "item", "price", "bidder"]
+
+    for field in required_fields:
+        if not tx_data.get(field):
+            return "Invlaid transaction data", 404
+
+    tx_data["timestamp"] = time.time()
+
+    blockchain.add_new_transaction(tx_data)
+
+    return "Success", 201
+
+
+@app.route('/get_transaction', methods=['POST'])
+def get_transaction():
+    tx_data = request.get_json()
+    required_fields = ["auctioneer", "item", "price", "bidder", "timestamp"]
+
+    for field in required_fields:
+        if not tx_data.get(field):
+            return "Invalid transaction data", 404
+
+    blockchain.add_new_transaction(tx_data)
+
+    return "Success", 201
 @app.route('/mine', methods=['GET', 'POST'])
 def mine():
     """
@@ -21,8 +46,7 @@ def mine():
 
     """
     result = -1
-    uncomfirmed_transactions = request.get_json()
-
+    global uncomfirmed_transactions
     for anchor in anchors:
         try:
             url = 'http://{}/concensus'.format(anchor)
@@ -36,19 +60,19 @@ def mine():
             new_block = Block(
                 index, last_hash, 0, transaction_counter, difficult, uncomfirmed_transactions
             )
+            
             Blockchain.proof_of_work(new_block)
             url = 'http://{}/broadcast_block'.format(anchor)
             http_response = requests.post(url, json=new_block.__dict__)
         except:
             print("cannot connect anchor {}". format(anchor))
 
-
     uncomfirmed_transactions = []
 
 
     if result == -1:
-        return "No transactions to mine"
-    return "Block #{} is mined.".format(result)
+        return jsonify({"No transaction to mine"})
+    return jsonify({"response": "Block #{} is mined.".format(result)})
 
 
 @app.route('/order', methods=['GET', 'POST'])

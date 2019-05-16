@@ -4,8 +4,9 @@ import os
 import requests
 from flask import Flask
 from flask import render_template, redirect, request, jsonify
-
-__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+import time
+__location__ = os.path.realpath(os.path.join(
+    os.getcwd(), os.path.dirname(__file__)))
 
 app = Flask(__name__)
 
@@ -13,56 +14,69 @@ app = Flask(__name__)
 # The node with which our application interacts, there can be multiple
 # such nodes as well.
 CONNECTED_NODE_ADDRESS = "http://127.0.0.1:5000"
+CONNECTED_NODE_MINE = "http://127.0.0.1:5002"
 
 posts = []
 
 
 def fetch_posts():
     """
-    lấy chuỗi từ peer
+    lấy chuỗi từ peer và phân tích dữ liệu
     """
-    get_chain_address = "{}/concensus".format(CONNECTED_NODE_ADDRESS)
+    get_chain_address = "{}/consensus".format(CONNECTED_NODE_ADDRESS)
+    """
     response = requests.get(get_chain_address)
     if response.status_code == 200:
         content = []
-        chain = json.loads(response.content)
-        for block in chain["chain"]:
-            for tx in block["transactions"]:
-                tx["index"] = block["index"]
-                tx["hash"] = block["previous_hash"]
-                content.append(tx)
+        data = json.loads(response.content)
+        surveys = data['auctions']
 
         global posts
-        posts = sorted(content, key=lambda k: k['timestamp'],
+        posts = sorted(auction, key=lambda k: k['timestamp'],
                        reverse=True)
+                       """
 
 
 @app.route('/')
 def index():
     fetch_posts()
     return render_template('index.html',
-                           title='system auction',
+                           title='System auction based blockchain',
                            posts=posts,
                            node_address=CONNECTED_NODE_ADDRESS,
                            readable_time=timestamp_to_string)
 
 
+@app.route('/mine', methods=['GET', 'POST'])
+def mine():
+
+    url = '{}/mine'.format(CONNECTED_NODE_MINE)
+    response = requests.get(url)
+
+    data = response.json()['response']
+    print(data)
+    return data
+
 @app.route('/submit', methods=['POST'])
 def submit_textarea():
     """
-    tạo giao dịch mới khi ấn submit
+    tạo giao dịch mới khi ấn post
     """
-    auctioneer = request.form["auctioneer"]
-    post_item = request.form["item"]
-    post_price = request.form["price"]
-    bidder = request.form["bidder"]
-    
+    id_author = int(request.form['id'])
+    item = request.form['item']
+    opening_time = request.form['opening_time']
+    author = request.form['author']
 
     post_object = {
-        'auctioneer':auctioneer,
-        'item':post_item,
-        'price':post_price,
-        'bidder':bidder
+        'type': 'open',
+        'content': {
+            'id_author': id_author,
+            'item': item,
+            'opening_time': opening_time,
+            'author': author,
+            'status': 'opening',
+            'timestamp': time.time()
+        }
     }
 
     # Submit a transaction
