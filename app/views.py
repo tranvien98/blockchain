@@ -24,13 +24,15 @@ def fetch_posts():
     lấy chuỗi từ peer và phân tích dữ liệu
     """
     get_chain_address = "{}/open_auctions".format(CONNECTED_NODE_ADDRESS)
-    """
+    
     response = requests.get(get_chain_address)
+    print(response)
     if response.status_code == 200:
         content = []
         data = json.loads(response.content)
-        surveys = data['auctions']
-
+        """
+        auctions = data['auctioneer']
+        print(data)
         global posts
         posts = sorted(auction, key=lambda k: k['timestamp'],
                        reverse=True)
@@ -62,17 +64,19 @@ def submit_textarea():
     """
     tạo giao dịch mới khi ấn post
     """
-    id_author = int(request.form['id'])
+    id_auctioneer = int(request.form['id'])
     item = request.form['item']
     opening_time = request.form['opening_time']
-    author = request.form['author']
+    auctioneer = request.form['auctioneer']
+    author = request.remote_addr
 
     post_object = {
         'type': 'open',
         'content': {
-            'id_author': id_author,
+            'id_auctioneer': id_auctioneer,
             'item': item,
             'opening_time': opening_time,
+            'auctioneer': auctioneer,
             'author': author,
             'status': 'opening',
             'timestamp': time.time()

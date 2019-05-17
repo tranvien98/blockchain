@@ -30,7 +30,7 @@ def new_transaction():
     them transaction
     """
     tx_data = request.get_json()
-    print(tx_data)
+
     required_fields = ["type", "content"]
 
     for field in required_fields:
@@ -52,6 +52,7 @@ def get_transaction():
     """
     lấy giao dịch từ các nút khác
     """
+    
     tx_data = request.get_json()
     required_fields = ["type", "content", "timestamp"]
 
@@ -74,13 +75,13 @@ def get_open_auctions():
 
     url = 'http://{}/consensus'.format(orderIp)
     response = requests.get(url)
-
     length = response.json()['length']
     chain = response.json()['chain']
-    longest_chain = Blockchain.fromList(chain)
+    longest_chain = Blockchain.from_list(chain)
 
+    print(len(blockchain.chain), length)
     if len(blockchain.chain) < length and blockchain.check_chain_validity(longest_chain.chain):
-
+        print("davao...........\n")
         longest_chain.open_auctions = {}
 
         for block in longest_chain.chain:
@@ -90,11 +91,10 @@ def get_open_auctions():
         blockchain = longest_chain
 
     auctions = []
-    for _, auction in blockchain.open_auctions.items():
+    for _ , auction in blockchain.open_auctions.items():
         auctions.append(auction)
 
-    return jsonify({"length": len(blockchain.open_auctions),
-                    "auctions": list(auctions)})
+    return jsonify({"length": len(blockchain.open_auctions)})
 
 
 @app.route('/chain', methods=['GET'])
@@ -106,10 +106,10 @@ def get_chain():
 
     length = response.json()['length']
     chain = response.json()['chain']
-    longest_chain = Blockchain.fromList(chain)
+    longest_chain = Blockchain.from_list(chain)
 
     if len(blockchain.chain) < length and blockchain.check_chain_validity(longest_chain.chain):
-        # recompute open_auctions
+        # kiem tra lai open_auction
         longest_chain.open_auctions = {}
 
         for block in longest_chain.chain:
@@ -136,7 +136,7 @@ def get_local_chain():
                     "chain": chain_data})
 
 @app.route('/mine', methods=['GET'])
-def mine_unconfirmed_transactions():
+def mine():
     """
    
     """
@@ -145,8 +145,7 @@ def mine_unconfirmed_transactions():
 
     last_block = blockchain.last_block
 
-    new_block = Block(last_block.index + 1, last_block.hash,
-                      0, 0, blockchain.difficulty, [])
+    new_block = Block(last_block.index + 1, last_block.hash, 0, blockchain.difficulty, [])
 
     
     for transaction in blockchain.unconfirmed_transactions:
@@ -156,7 +155,7 @@ def mine_unconfirmed_transactions():
     blockchain.unconfirmed_transactions = []
 
     if (len(new_block.transactions) == 0):
-        return jsonify({"response": "None transactions 0x002"})
+        return jsonify({"response": "Error none transactions x01"})
 
     proof = blockchain.proof_of_work(new_block)
     blockchain.add_block(new_block, proof)
@@ -168,7 +167,7 @@ def mine_unconfirmed_transactions():
     result = new_block.index
 
     if not result:
-        return jsonify({"response": "None transactions to mine 0x002"})
+        return jsonify({"response": " Error none transactions x02"})
     return jsonify({"response": "Block #{} is mined.".format(result)})
 
 
@@ -179,11 +178,8 @@ def validate_and_add_block():
 
     block_data = request.get_json()
 
-    block = Block(block_data["index"],
-                  block_data["transactions"],
-                  block_data["timestamp"],
-                  block_data["previous_hash"],
-                  block_data["nonce"])
+    block = Block(data_block['index'], data_block['previous_hash'], data_block['nonce'],
+                  data_block['difficult'], data_block['transactions'], data_block['timestamp'])
 
     tmp_open_auctions = blockchain.open_auctions
     tmp_chain_code = blockchain.chain_code
@@ -222,7 +218,7 @@ def validate_transaction(transaction):
     global blockchain
     #Kiểm tra quyền của giao dịch
     author = transaction['content']['author']
-    url = 'http://{}/validate_permission'.format(caIP + ':' + caPort)
+    url = 'http://{}/validate_permission'.format(anchorsIp)
     response = requests.post(
         url, json={'peer': author, 'action': transaction['type']})
 
@@ -230,51 +226,19 @@ def validate_transaction(transaction):
         print("Reject from server")
         return False
 
-    #check validate transaction and compute open_auctions
+    
     if transaction['type'].lower() == 'open':
-        questionid = transaction['content']['questionid']
-        if questionid in blockchain.open_auctions:
+        id_auctioneer = transaction['content']['id_auctioneer']
+        if id_auctioneer in blockchain.open_auctions:
             return False
-        blockchain.open_auctions[questionid] = transaction['content']
+        blockchain.open_auctions[id_auctioneer] = transaction['content']
         return True
-    elif transaction['type'].lower() == 'close':
-        questionid = transaction['content']['questionid']
-        if questionid in blockchain.open_auctions and blockchain.open_auctions[questionid]['author'] == transaction['content']['author'] and blockchain.open_auctions[questionid]['status'] == 'opening':
-            blockchain.open_auctions[questionid]['status'] = 'closed'
-            return True
-        return False
-    elif transaction['type'].lower() == 'vote':
-        questionid = transaction['content']['questionid']
-        if questionid in blockchain.open_auctions and blockchain.open_auctions[questionid]['status'] == 'opening':
-            vote = transaction['content']['vote']
-            author = transaction['content']['author']
-            if author not in blockchain.open_auctions[questionid]['answers'][vote]:
-                blockchain.open_auctions[questionid]['answers'][vote].append(
-                    author)
-                return True
-            return False
-    elif transaction['type'].lower() == 'smartcontract':
-        try:
-            exec(transaction['content']['code'],
-                 blockchain.chain_code, blockchain.chain_code)
-            return True
-        except:
-            print('Error when create new contract')
-            return False
-    elif transaction['type'].lower() == 'execute':
-        try:
-            thread = threading.Thread(
-                target=blockchain.chain_code[transaction['content']['contract']], args=transaction['content']['arguments'])
-            thread.start()
-            return True
-        except:
-            print('Error when execute chain_code {}'.format(
-                transaction['content']['contract']))
-            return False
 
 
 def compute_open_auctions(block, open_auctions, chain_code):
     for transaction in block.transactions:
+        print("dava")
+        print(transaction['content'])
         author = transaction['content']['author']
         url = 'http://{}/validate_permission'.format(anchorsIp)
         response = requests.post(
@@ -284,36 +248,15 @@ def compute_open_auctions(block, open_auctions, chain_code):
             print("Reject from server")
             return False
 
-        #check validate transaction and compute open_auctions
+    
 
         if transaction['type'].lower() == 'open':
-            questionid = transaction['content']['questionid']
-            if questionid not in open_auctions:
-                open_auctions[questionid] = transaction['content']
+            id_auctioneer = transaction['content']['id_auctioneer']
+            if id_auctioneer not in open_auctions:
+                open_auctions[id_auctioneer] = transaction['content']
                 return True
-        elif transaction['type'].lower() == 'close':
-            questionid = transaction['content']['questionid']
-            if questionid in open_auctions and open_auctions[questionid]['author'] == transaction['content']['author'] and open_auctions[questionid]['status'] == 'opening':
-                open_auctions[questionid]['status'] = 'closed'
-                return True
-        elif transaction['type'].lower() == 'vote':
-            questionid = transaction['content']['questionid']
-            if questionid in open_auctions and open_auctions[questionid]['status'] == 'opening':
-                vote = transaction['content']['vote']
-                author = transaction['content']['author']
-                if author not in open_auctions[questionid]['answers'][vote]:
-                    open_auctions[questionid]['answers'][vote].append(author)
-                    return True
-        elif transaction['type'].lower() == 'smartcontract':
-            try:
-                exec(transaction['content']['code'], chain_code)
-                return True
-            except:
-                print('Error when create new contract')
-                return False
         else:
             return True
-        return False
     return True
 
 

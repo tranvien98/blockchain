@@ -16,8 +16,8 @@
 		<p>opening times:
 		<input class="menu-item" type="text" name="opening_time" placeholder="opening time" required="">
 		</p>
-		<p>author:
-		<input class="menu-item" type="text" name="author" placeholder="author" required="">
+		<p>auctioneer:
+		<input class="menu-item" type="text" name="auctioneer" placeholder="auctioneer" required="">
 		</p>
 		<br />
 	    <input class="menu-item" type="submit" name="post" value="post">
@@ -38,8 +38,8 @@
     {% for post in posts %}
     <div class="post_box">
 	   <div class="post_box-header">
-	      <div style="background: rgb(0, 97, 146) none repeat scroll 0% 0%; box-shadow: rgb(0, 97, 146) 0px 0px 0px 2px;" class="post_box-avatar">{{post.author[0]}}</div>
-	      <div class="name-header">{{post.author}}</div>
+	      <div style="background: rgb(0, 97, 146) none repeat scroll 0% 0%; box-shadow: rgb(0, 97, 146) 0px 0px 0px 2px;" class="post_box-avatar">{{post.auctioneer[0]}}</div>
+	      <div class="name-header">{{post.auctioneer}}</div>
 		  <div class="post_box-subtitle"> Posted at <i>{{readable_time(post.timestamp)}}</i></div>
 		  <p>current id:</p>
 		  <p>id bidder:</p>

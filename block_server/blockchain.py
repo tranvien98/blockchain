@@ -8,7 +8,8 @@ class Blockchain(object):
         self.create_genesis_block()
         self.unconfirmed_transactions = []
         self.open_auctions = []
-
+        self.chain_code = {'chain': self.chain, 'open_auctions': self.open_auctions,
+                           'unconfirmed_transactions': self.unconfirmed_transactions}
     def from_list(data_chain):
         blockchain = Blockchain()
         blockchain.chain = []
@@ -32,7 +33,7 @@ class Blockchain(object):
         Tạo khối genesis và gắn nó vào chuỗi.
       
         """
-        genesis_block = Block(0, 0, 0, 0, 2, [], time.time())
+        genesis_block = Block(0, 0, 0, 2, [])
 
         self.proof_of_work(genesis_block)
 
@@ -80,8 +81,7 @@ class Blockchain(object):
     @classmethod
     def is_valid_proof(cls, block, block_hash):
         """
-        Check if block_hash is valid hash of block and satisfies
-        the difficulty criteria.
+
         """
 
         return (block_hash.startswith('0' * Blockchain.difficulty) and
@@ -94,8 +94,7 @@ class Blockchain(object):
 
         for block in chain:
             block_hash = block.hash
-            # remove the hash field to recompute the hash again
-            # using `compute_hash` method.
+          
             delattr(block, "hash")
 
             if not cls.is_valid_proof(block, block_hash) or \
