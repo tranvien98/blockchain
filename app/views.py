@@ -49,8 +49,8 @@ def index():
 
 @app.route('/mine', methods=['GET', 'POST'])
 def mine():
-
-    url = '{}/mine'.format(CONNECTED_NODE_MINE)
+# dao block moi de luu tru thong tin
+    url = '{}/mine'.format(CONNECTED_NODE_ADDRESS)
     response = requests.get(url)
 
     data = response.json()['response']

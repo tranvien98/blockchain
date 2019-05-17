@@ -30,6 +30,7 @@ def new_transaction():
     them transaction
     """
     tx_data = request.get_json()
+    print(tx_data)
     required_fields = ["type", "content"]
 
     for field in required_fields:
@@ -139,23 +140,18 @@ def mine_unconfirmed_transactions():
     """
    
     """
-
     if not blockchain.unconfirmed_transactions:
         return jsonify({"response": "None transactions 0x001"})
 
     last_block = blockchain.last_block
 
-    new_block = Block(index=last_block.index + 1,
-                      transactions=[],
-                      timestamp=time.time(),
-                      previous_hash=last_block.hash)
+    new_block = Block(last_block.index + 1, last_block.hash,
+                      0, 0, blockchain.difficulty, [])
 
+    
     for transaction in blockchain.unconfirmed_transactions:
-     
-        if not validate_transaction(transaction):
-            continue
-
         new_block.transactions.append(transaction)
+
 
     blockchain.unconfirmed_transactions = []
 
@@ -321,10 +317,15 @@ def compute_open_auctions(block, open_auctions, chain_code):
     return True
 
 
-def join_to_network(anchorsIp, myAddress):
+def join_to_network(anchorsIp):
+    data = {
+        'port' : "5000"
+    }
     try:
         url = 'http://{}/add_node'.format(anchorsIp)
-        response = requests.post(url, json={myAddress})
+        print(url)
+        
+        response = requests.post(url, json=data)
         print('Connection successfull')
         return True
     except:
@@ -340,8 +341,6 @@ if __name__ == '__main__':
                         type=int, help='port to listen on')
     args = parser.parse_args()
     port = args.port
-
-
 
   
     while not join_to_network(anchorsIp):

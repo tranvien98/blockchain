@@ -16,16 +16,15 @@ groups['127.0.0.1:5000'] = 'admin'
 
 @app.route('/add_node', methods=['GET', 'POST'])
 def validate_connection():
-
+	print("connect....")
 	data = request.get_json()
-	request_addr = get_ip(request.remote_addr)
-
+	request_addr = request.remote_addr
+	print(request_addr)
 	if not data:
 		return 'Invalid data', 400
 
 
 	node = request_addr + ':' + str(data['port'])
-
 	if not node:
 		return 'Invalid data', 400
 
@@ -34,12 +33,12 @@ def validate_connection():
 	if node not in groups:
 		groups[node] = 'peer'
 
-	url = 'http://{}:5002/add_node'.format(orderer)
+	url = 'http://{}:5002/add_node'.format(request_addr)
 	response = requests.post(
 		url, json={'ipaddress': request_addr, 'port': data['port']})
 
 	if response.status_code >= 400:
-		return 'Error to connect to orderer', 400
+		return 'Error to connect to order', 400
 
 	return "Success", 201
 

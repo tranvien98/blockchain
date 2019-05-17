@@ -1,17 +1,14 @@
 from block import Block
-
+import time
 
 class Blockchain(object):
+    difficulty = 2
     def __init__(self):
         self.chain = []
         self.create_genesis_block()
         self.unconfirmed_transactions = []
+        self.open_auctions = []
 
-    def create_genesis_block(self):
-        genesis_block = Block(0, 0, 0, 0, 2, [])
-        self.chain.append(genesis_block)
-
-    @staticmethod
     def from_list(data_chain):
         blockchain = Blockchain()
         blockchain.chain = []
@@ -35,7 +32,7 @@ class Blockchain(object):
         Tạo khối genesis và gắn nó vào chuỗi.
       
         """
-        genesis_block = Block(0, [], time.time(), "0")
+        genesis_block = Block(0, 0, 0, 0, 2, [], time.time())
 
         self.proof_of_work(genesis_block)
 

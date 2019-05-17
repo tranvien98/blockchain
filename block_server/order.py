@@ -9,12 +9,9 @@ app = Flask(__name__)
 
 anchors = set()
 
-# the address to other participating members of the network
-peers = set()
 
-# endpoint to add new peers to the network.
 @app.route('/add_node', methods=['POST'])
-def register_new_peers():
+def register_new_anchors():
     data = request.get_json()
 
     if not data:
@@ -27,7 +24,7 @@ def register_new_peers():
     if not node:
         return "Invalid data", 400
 
-    peers.add(node)
+    anchors.add(node)
 
     return "Success", 201
 
@@ -35,30 +32,28 @@ def register_new_peers():
 @app.route('/broadcast_block', methods=['POST'])
 def announce_new_block():
     """
-    A function to announce to the network once a block has been mined.
-    Other blocks can simply verify the proof of work and add it to their
-    respective chains.
+
     """
-    block = Block.fromDict(request.get_json())
+    block = Block.from_dict(request.get_json())
     if not block:
     	return "Invalid data at announce_new_block", 400
 
-    request_addr = get_ip(request.remote_addr)
+    request_addr = request.remote_addr
 
     offline_node = []
 
-    for peer in peers:
+    for peer in anchors:
         try:
             if peer.find(request_addr) != -1:
                 continue
             url = "http://{}/add_block".format(peer)
             requests.post(url, json=block.__dict__)
         except requests.exceptions.ConnectionError:
-            print('Cant connect to node {}. Remove it from peers list'.format(peer))
+            print('Cant connect to node {}. Remove it from peer list'.format(peer))
             offline_node.append(peer)
 
     for peer in offline_node:
-        peers.remove(peer)
+        anchors.remove(peer)
 
     return "Success", 201
 
@@ -66,30 +61,28 @@ def announce_new_block():
 @app.route('/broadcast_transaction', methods=['POST'])
 def announce_new_transaction():
     """
-    A function to announce to the network once a transaction has been added.
-    Other blocks can simply verify the proof of work and add it to their
-    respective chains.
+
     """
     data = request.get_json()
     if not data:
         return "Invalid data at announce_new_block", 400
 
-    request_addr = get_ip(request.remote_addr)
+    request_addr = request.remote_addr
 
     offline_node = []
 
-    for peer in peers:
+    for peer in anchors:
         try:
             if peer.find(request_addr) != -1:
                 continue
             url = "http://{}/get_transaction".format(peer)
             requests.post(url, json=data)
         except requests.exceptions.ConnectionError:
-            print('Cant connect to node {}. Remove it from peers list'.format(peer))
+            print('Cant connect to node {}. Remove it from peer list'.format(peer))
             offline_node.append(peer)
 
     for peer in offline_node:
-        peers.remove(peer)
+        anchors.remove(peer)
 
     return "Success", 201
 
@@ -97,15 +90,14 @@ def announce_new_transaction():
 @app.route('/consensus', methods=['GET'])
 def consensus():
     """
-    Our simple consensus algorithm. If a longer valid chain is
-    found, our chain is replaced with it.
+
     """
     longest_chain = Blockchain()
     current_len = len(longest_chain.chain)
 
     offline_node = []
 
-    for peer in peers:
+    for peer in anchors:
         try:
             response = requests.get('http://{}/local_chain'.format(peer))
             length = response.json()['length']
@@ -116,11 +108,11 @@ def consensus():
                 current_len = length
                 longest_chain = new_blockchain
         except requests.exceptions.ConnectionError:
-            print('Cant connect to node {}. Remove it from peers list'.format(peer))
+            print('Cant connect to node {}. Remove it from anchors list'.format(peer))
             offline_node.append(peer)
 
     for peer in offline_node:
-        peers.remove(peer)
+        anchors.remove(peer)
 
     chain_data = []
 
@@ -130,18 +122,18 @@ def consensus():
     return jsonify({"length": len(chain_data),
                     "chain": chain_data})
 
-#in ra số lượng node
+# in ra số lượng node
 @app.route('/list_nodes', methods=['GET', 'POST'])
 def get_node():
     result = {
-        'Nodes in System': list(peers),
-        'Count of Nodes': len(peers)
+        'Nodes in System': list(anchors),
+        'Count of Nodes': len(anchors)
     }
     return jsonify(result)
 
 
 if __name__ == '__main__':
-      from argparse import ArgumentParser
+    from argparse import ArgumentParser
     parser = ArgumentParser()
     parser.add_argument('-p', '--port', default=5002,
                         type=int, help='port to listen on')
