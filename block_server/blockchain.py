@@ -7,7 +7,7 @@ class Blockchain(object):
         self.chain = []
         self.create_genesis_block()
         self.unconfirmed_transactions = []
-        self.open_auctions = []
+        self.open_auctions = {}
         self.chain_code = {'chain': self.chain, 'open_auctions': self.open_auctions,
                            'unconfirmed_transactions': self.unconfirmed_transactions}
     def from_list(data_chain):

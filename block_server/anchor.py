@@ -51,6 +51,7 @@ def validate_permission():
 		return 'Invalid data', 400
 
 	node = data["peer"]
+
 	action = data["action"]
 
 	if not node in groups:

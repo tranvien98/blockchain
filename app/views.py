@@ -30,13 +30,13 @@ def fetch_posts():
     if response.status_code == 200:
         content = []
         data = json.loads(response.content)
-        """
-        auctions = data['auctioneer']
+        auctions = data['auctions']
         print(data)
+
         global posts
-        posts = sorted(auction, key=lambda k: k['timestamp'],
+        posts = sorted(auctions, key=lambda k: k['timestamp'],
                        reverse=True)
-                       """
+    
 
 
 @app.route('/')
@@ -77,7 +77,7 @@ def submit_textarea():
             'item': item,
             'opening_time': opening_time,
             'auctioneer': auctioneer,
-            'author': author,
+            'author': author + ':5000',
             'status': 'opening',
             'timestamp': time.time()
         }

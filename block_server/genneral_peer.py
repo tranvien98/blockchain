@@ -81,7 +81,6 @@ def get_open_auctions():
 
     print(len(blockchain.chain), length)
     if len(blockchain.chain) < length and blockchain.check_chain_validity(longest_chain.chain):
-        print("davao...........\n")
         longest_chain.open_auctions = {}
 
         for block in longest_chain.chain:
@@ -92,9 +91,10 @@ def get_open_auctions():
 
     auctions = []
     for _ , auction in blockchain.open_auctions.items():
+        print(auction)
         auctions.append(auction)
-
-    return jsonify({"length": len(blockchain.open_auctions)})
+    return jsonify({"length": len(blockchain.open_auctions),
+                    "auctions": list(auctions)})
 
 
 @app.route('/chain', methods=['GET'])
@@ -149,6 +149,8 @@ def mine():
 
     
     for transaction in blockchain.unconfirmed_transactions:
+        if not validate_transaction(transaction):
+            continue
         new_block.transactions.append(transaction)
 
 
@@ -218,6 +220,7 @@ def validate_transaction(transaction):
     global blockchain
     #Kiểm tra quyền của giao dịch
     author = transaction['content']['author']
+    print(author)
     url = 'http://{}/validate_permission'.format(anchorsIp)
     response = requests.post(
         url, json={'peer': author, 'action': transaction['type']})
@@ -229,6 +232,7 @@ def validate_transaction(transaction):
     
     if transaction['type'].lower() == 'open':
         id_auctioneer = transaction['content']['id_auctioneer']
+        print("id prpprpr:" + str(id_auctioneer))
         if id_auctioneer in blockchain.open_auctions:
             return False
         blockchain.open_auctions[id_auctioneer] = transaction['content']
@@ -237,7 +241,6 @@ def validate_transaction(transaction):
 
 def compute_open_auctions(block, open_auctions, chain_code):
     for transaction in block.transactions:
-        print("dava")
         print(transaction['content'])
         author = transaction['content']['author']
         url = 'http://{}/validate_permission'.format(anchorsIp)
