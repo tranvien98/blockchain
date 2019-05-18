@@ -6,9 +6,9 @@
 
 	<h2>Post new item</h2>
 	<hr />
-	<form action="/submit" id="textform" method="post">
+	<form action="/submit" id="textform" method="POST">
 		<p>ID:
-		<input class="menu-item" type="text" name="id" placeholder="id" required="">
+		<input class="menu-item" type="text" name="id_auctioneer" placeholder="id auctioneer" required="">
 		</p>
 		<p>item:
 		<input class="menu-item" type="text" name="item" placeholder="item" required="">
@@ -30,7 +30,7 @@
 	<a href="/mine"><button>Request to mine</button></a>
 	<a href="/"><button>Resync</button></a>
 	<a href="#"><button>Update</button></a>
-	<a href="#"><button>Pending transaction</button></a>
+	<a href="/pending_tx"><button>Pending transaction</button></a>
 	<a href="#"><button>List node</button></a>
 	<hr />
 	<div style="margin: 20px;"></div>
@@ -38,21 +38,20 @@
     {% for post in posts %}
     <div class="post_box">
 	   <div class="post_box-header">
-	      <div style="background: rgb(0, 97, 146) none repeat scroll 0% 0%; box-shadow: rgb(0, 97, 146) 0px 0px 0px 2px;" class="post_box-avatar">{{post.auctioneer[0]}}</div>
-	      <div class="name-header">{{post.auctioneer}}</div>
-		  <div class="post_box-subtitle"> Posted at <i>{{readable_time(post.timestamp)}}</i></div>
-		  <div>Item : {{post.item}}</div>
-		  <div>current id:</div>
-		  <div>id bidder:</div>
+	    	<div style="background: rgb(0, 97, 146) none repeat scroll 0% 0%; box-shadow: rgb(0, 97, 146) 0px 0px 0px 2px;" class="post_box-avatar">{{post.auctioneer[0]}}</div>
+	    	<div class="name-header">{{post.auctioneer}}</div>
+			<div class="post_box-subtitle"> Posted at <i>{{readable_time(post.timestamp)}}</i></div>
+			<div>item: {{post.item}}</div>
+			<div>Current price : {{post.price_bidder}}</div>
+			<div>id bidder: {{post.id_bidder}}</div>
 	   </div>
-	   <hr />
 	   <div>
 	      <div>
-	         <form action="">
-				 <input type="text" name="idbidder" placeholder="Id bidder">
-				 <input type="text" name="full name" placeholder="Full name">
-				 <input type="text" name="price" placeholder="Price"> <br />
-				 <input type="submit" name="send" value="Send">
+			 <form action="/auctioning" id="form_auctioning" method="POST">
+				<input type="text" name="id_auctioneer" value="{{post.id_auctioneer}}">
+				<input type="text" name="id_bidder" placeholder="Id bidder">
+				<input type="text" name="price_bidder" placeholder="Price"> <br />
+				<input type="submit" name="send" value="Send">
 			 </form>
 	      </div>
 	   </div>

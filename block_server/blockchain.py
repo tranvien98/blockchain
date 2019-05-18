@@ -5,6 +5,7 @@ class Blockchain(object):
     difficulty = 2
     def __init__(self):
         self.chain = []
+        self.timeout = 10000;
         self.create_genesis_block()
         self.unconfirmed_transactions = []
         self.open_auctions = {}

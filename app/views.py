@@ -64,7 +64,7 @@ def submit_textarea():
     """
     tạo giao dịch mới khi ấn post
     """
-    id_auctioneer = int(request.form['id'])
+    id_auctioneer = int(request.form['id_auctioneer'])
     item = request.form['item']
     opening_time = request.form['opening_time']
     auctioneer = request.form['auctioneer']
@@ -78,6 +78,7 @@ def submit_textarea():
             'opening_time': opening_time,
             'auctioneer': auctioneer,
             'author': author + ':5000',
+            'price_bidder' : '0',
             'status': 'opening',
             'timestamp': time.time()
         }
@@ -93,6 +94,44 @@ def submit_textarea():
     return redirect('/')
 
 
+@app.route('/auctioning', methods=['GET', 'POST'])
+def auctioning():
+    """
+    tao giao dich khi nguoi dau gia an nut send 
+    """
+
+    author = request.remote_addr
+    id_auctioneer = int(request.form['id_auctioneer'])
+    id_bidder = int(request.form['id_bidder'])
+    price_bidder = float(request.form['price_bidder'])
+
+    post_object = {
+        'type': 'auctioning',
+        'content': {
+            'id_auctioneer' : id_auctioneer,
+            'id_bidder' : id_bidder,
+            'price_bidder' : price_bidder,
+            'author': author + ':5000',
+            'timestamp': time.time()
+        }
+    }
+
+    # Submit a transaction
+    new_tx_address = "{}/new_transaction".format(CONNECTED_NODE_ADDRESS)
+
+    requests.post(new_tx_address,
+                  json=post_object,
+                  headers={'Content-type': 'application/json'})
+
+    return redirect('/')
+
+@app.route('/pending_tx', methods=['GET', 'POST'])
+def get_pending_tx():
+
+    url = '{}/pending_tx'.format(CONNECTED_NODE_ADDRESS)
+    response = requests.get(url)
+    data = response.json()
+    return jsonify(data)
 def timestamp_to_string(epoch_time):
     return datetime.datetime.fromtimestamp(epoch_time).strftime('%H:%M')
 

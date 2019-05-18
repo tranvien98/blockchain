@@ -232,12 +232,19 @@ def validate_transaction(transaction):
     
     if transaction['type'].lower() == 'open':
         id_auctioneer = transaction['content']['id_auctioneer']
-        print("id prpprpr:" + str(id_auctioneer))
         if id_auctioneer in blockchain.open_auctions:
             return False
         blockchain.open_auctions[id_auctioneer] = transaction['content']
         return True
-
+    elif transaction['type'].lower() == 'auctioning':
+        id_auctioneer = transaction['content']['id_auctioneer']
+        if id_auctioneer in blockchain.open_auctions and blockchain.open_auctions[id_auctioneer]['status'] == 'opening':
+            price_bidder = transaction['content']['price_bidder']
+            if float(blockchain.open_auctions[id_auctioneer]['price_bidder']) < price_bidder:
+                blockchain.open_auctions[id_auctioneer]['price_bidder'] = price_bidder
+                blockchain.open_auctions[id_auctioneer]['id_bidder'] = transaction['content']['id_bidder']
+                return True
+            return False
 
 def compute_open_auctions(block, open_auctions, chain_code):
     for transaction in block.transactions:
