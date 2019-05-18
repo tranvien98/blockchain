@@ -5,16 +5,16 @@ import requests
 
 
 def count_down_opening_time(opening_time, author, id_auctioneer, CONNECTED_NODE_ADDRESS):
-	def close_survey(author, id_auctioneer, CONNECTED_NODE_ADDRESS):
+	def close_auction(author, id_auctioneer, CONNECTED_NODE_ADDRESS):
 	    post_object = {
 	        'type': 'close',
 	        'content': {
 	            'id_auctioneer': id_auctioneer,
-                'author' : author
+                'author' : author + ':5000',
 	            'timestamp': time.time()
 	        }
 	    }
-	    # them transaction mới
+	    
 	    new_tx_address = "{}/new_transaction".format(CONNECTED_NODE_ADDRESS)
 
 	    print(new_tx_address)
@@ -23,7 +23,6 @@ def count_down_opening_time(opening_time, author, id_auctioneer, CONNECTED_NODE_
 	                  json=post_object,
 	                  headers={'Content-type': 'application/json'})
 
-	print(opening_time, author, id_auctioneer)
 	t = Timer(opening_time, close_auctions, args=[
 	          author, id_auctioneer, CONNECTED_NODE_ADDRESS])
 	t.start()

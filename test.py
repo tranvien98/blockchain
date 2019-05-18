@@ -1,7 +1,10 @@
-try:
-    x
-except NameError:
-    x = None
+import threading
+import time
 
-if x is None :
-    print("none")
+def gfg():
+    print("Hello\n")
+
+
+timer = threading.Timer(10.0, gfg)
+timer.start()
+print("Exit\n")

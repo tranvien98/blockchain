@@ -96,7 +96,7 @@ def submit_textarea():
 
 
 @app.route('/close_auction', methods=['GET', 'POST'])
-def close_survey():
+def close_auction():
     """
     đóng cuộc đấu giá
     """

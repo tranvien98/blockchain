@@ -18,7 +18,7 @@
 		<div class="form-group">
 			<label class="col-md-12" for="name">Item </label>
 			<div class="col-md-12">
-				<input type="text" name="item" class="form-control input-md" placeholder="Điện thoại"
+				<input type="text" name="item" class="form-control input-md" placeholder="Phone"
 					required="">
 			</div>
 		</div>
@@ -51,12 +51,9 @@
 	<center>
 		<a href="/mine" target="_blank"><button type="button" class="themeBtn">Request to mine</button></a>
 		<a href="/"><button type="button" class="themeBtn">Resync</button></a>
-		<a href="/update_chaincode"><button type="button" class="themeBtn">Update</button></a>
 		<a href="/pending_tx" target="_blank"><button type=" button" class="themeBtn">Pending Transaction</button></a>
 		<a href="/list_nodes" target="_blank"><button type="button" class="themeBtn">List Node</button></a>
-	</center>
-	<center>
-		<p style="color:red">Nhấn nút mine để lưu các hành động</p>
+		<a href="/update_chaincode"><button type="button" class="themeBtn">Update</button></a>
 	</center>
 	<hr />
 	<center>
@@ -72,14 +69,16 @@
 				</div>
 				<div class="item-bidder name-header">{{post.auctioneer}}</div>
 				<div class="item-bidder post_box-subtitle"> Posted at <i>{{readable_time(post.timestamp)}}</i></div>
-				{% if post.status == 'closed' %}
-				<div class="item-bidder">Id Auctioneer: {{post.id_auctioneer}}</div>
-				{% endif %}
+				{% if post.status != 'closed' %}
 				<div class="item-bidder">Item: {{post.item}}</div>
 				<div class="item-bidder">Current price : {{post.price_bidder}} USD</div>
 				<div class="item-bidder">Id Bidder: {{post.id_bidder}}</div>
-	
-				
+				{% else %}
+				<div class="item-bidder">Id Auctioneer: {{post.id_auctioneer}}</div>
+				<div class="item-bidder">Sell item:{{post.item}} for id bidder: {{post.id_bidder}}</div>
+				<div class="item-bidder">Price : {{post.price_bidder}} USD</div>
+
+				{%endif%}
 			</div>
 		</div>
 		{% if post.status != 'closed' %}
