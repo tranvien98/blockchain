@@ -24,6 +24,6 @@ def count_down_opening_time(opening_time, author, id_auctioneer, CONNECTED_NODE_
 	                  headers={'Content-type': 'application/json'})
 
 	print(opening_time, author, id_auctioneer)
-	t = Timer(opening_time, close_survey, args=[
+	t = Timer(opening_time, close_auctions, args=[
 	          author, id_auctioneer, CONNECTED_NODE_ADDRESS])
 	t.start()

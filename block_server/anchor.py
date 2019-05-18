@@ -9,7 +9,7 @@ general_nodes = set()
 groups = {}
 
 # O : Open | C : Close | A : Auction
-permission = {'admin': 'OCASE', 'peer': 'OCSSE', 'guest': 'S'}
+permission = {'admin': 'OCASE', 'peer': 'OCASE', 'guest': 'S'}
 
 groups['127.0.0.1:5000'] = 'admin'
 

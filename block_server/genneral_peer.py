@@ -91,7 +91,6 @@ def get_open_auctions():
 
     auctions = []
     for _ , auction in blockchain.open_auctions.items():
-        print(auction)
         auctions.append(auction)
     return jsonify({"length": len(blockchain.open_auctions),
                     "auctions": list(auctions)})
@@ -141,7 +140,7 @@ def mine():
    
     """
     if not blockchain.unconfirmed_transactions:
-        return jsonify({"response": "None transactions 0x001"})
+        return jsonify({"response": "None transactions 0x01"})
 
     last_block = blockchain.last_block
 
@@ -149,6 +148,7 @@ def mine():
 
     
     for transaction in blockchain.unconfirmed_transactions:
+        print(transaction)
         if not validate_transaction(transaction):
             continue
         new_block.transactions.append(transaction)
@@ -157,7 +157,7 @@ def mine():
     blockchain.unconfirmed_transactions = []
 
     if (len(new_block.transactions) == 0):
-        return jsonify({"response": "Error none transactions x01"})
+        return jsonify({"response": "Error none transactions x02"})
 
     proof = blockchain.proof_of_work(new_block)
     blockchain.add_block(new_block, proof)
@@ -220,7 +220,6 @@ def validate_transaction(transaction):
     global blockchain
     #Kiểm tra quyền của giao dịch
     author = transaction['content']['author']
-    print(author)
     url = 'http://{}/validate_permission'.format(anchorsIp)
     response = requests.post(
         url, json={'peer': author, 'action': transaction['type']})
@@ -229,7 +228,6 @@ def validate_transaction(transaction):
         print("Reject from server")
         return False
 
-    
     if transaction['type'].lower() == 'open':
         id_auctioneer = transaction['content']['id_auctioneer']
         if id_auctioneer in blockchain.open_auctions:
@@ -240,12 +238,26 @@ def validate_transaction(transaction):
         id_auctioneer = transaction['content']['id_auctioneer']
         if id_auctioneer in blockchain.open_auctions and blockchain.open_auctions[id_auctioneer]['status'] == 'opening':
             price_bidder = transaction['content']['price_bidder']
-            if float(blockchain.open_auctions[id_auctioneer]['price_bidder']) < price_bidder:
+       
+            try:
+                blockchain.open_auctions[id_auctioneer]['id_bidder']
+            except KeyError:
+                blockchain.open_auctions[id_auctioneer]['id_bidder'] = None
+            if blockchain.open_auctions[id_auctioneer]['id_bidder'] is not None:
+               if (blockchain.open_auctions[id_auctioneer]['id_bidder'] != transaction['content']['id_bidder']):
+                   return False
+            if float(blockchain.open_auctions[id_auctioneer]['price_bidder']) < price_bidder :
                 blockchain.open_auctions[id_auctioneer]['price_bidder'] = price_bidder
                 blockchain.open_auctions[id_auctioneer]['id_bidder'] = transaction['content']['id_bidder']
                 return True
             return False
-
+    elif transaction['type'].lower() == 'close':
+            id_auctioneer = transaction['content']['id_auctioneer']
+            if id_auctioneer in blockchain.open_auctions and blockchain.open_auctions[id_auctioneer]['author'] == transaction['content']['author'] and blockchain.open_auctions[id_auctioneer]['status'] == 'opening':
+                blockchain.open_auctions[id_auctioneer]['status'] = 'closed'
+                
+                return True
+            return False
 def compute_open_auctions(block, open_auctions, chain_code):
     for transaction in block.transactions:
         print(transaction['content'])
@@ -276,8 +288,6 @@ def join_to_network(anchorsIp):
     }
     try:
         url = 'http://{}/add_node'.format(anchorsIp)
-        print(url)
-        
         response = requests.post(url, json=data)
         print('Connection successfull')
         return True

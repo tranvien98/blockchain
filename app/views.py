@@ -5,6 +5,7 @@ import requests
 from flask import Flask
 from flask import render_template, redirect, request, jsonify
 import time
+import string
 __location__ = os.path.realpath(os.path.join(
     os.getcwd(), os.path.dirname(__file__)))
 
@@ -94,6 +95,33 @@ def submit_textarea():
     return redirect('/')
 
 
+@app.route('/close_auction', methods=['GET', 'POST'])
+def close_survey():
+    """
+    đóng cuộc đấu giá
+    """
+
+    author = request.remote_addr
+    id_auctioneer = int(request.args.get('id_auctioneer'))
+
+    post_object = {
+        'type': 'close',
+        'content': {
+            'id_auctioneer' : id_auctioneer,
+            'author': author + ':5000',
+            'timestamp': time.time()
+        }
+    }
+
+    new_tx_address = "{}/new_transaction".format(CONNECTED_NODE_ADDRESS)
+
+    requests.post(new_tx_address,
+                  json=post_object,
+                  headers={'Content-type': 'application/json'})
+
+    return redirect('/')
+
+
 @app.route('/auctioning', methods=['GET', 'POST'])
 def auctioning():
     """
@@ -116,7 +144,7 @@ def auctioning():
         }
     }
 
-    # Submit a transaction
+
     new_tx_address = "{}/new_transaction".format(CONNECTED_NODE_ADDRESS)
 
     requests.post(new_tx_address,

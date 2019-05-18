@@ -3,59 +3,118 @@
 
 {% block content %}
 	<br>
-
-	<h2>Post new item</h2>
-	<hr />
-	<form action="/submit" id="textform" method="POST">
-		<p>ID:
-		<input class="menu-item" type="text" name="id_auctioneer" placeholder="id auctioneer" required="">
-		</p>
-		<p>item:
-		<input class="menu-item" type="text" name="item" placeholder="item" required="">
-		</p>
-		<p>opening times:
-		<input class="menu-item" type="text" name="opening_time" placeholder="opening time" required="">
-		</p>
-		<p>auctioneer:
-		<input class="menu-item" type="text" name="auctioneer" placeholder="auctioneer" required="">
-		</p>
-		<br />
-	    <input class="menu-item" type="submit" name="post" value="post">
+	<div class="container">
+		<h2> Post Auction</h2>
+	</div>
+	<form class="form-horizontal"action="/submit" method="POST">
+		<!-- Text input id auctioneer-->
+		<div class="form-group">
+			<label class="col-md-12" for="name">ID Auctioneer</label>
+			<div class="col-md-12">
+				<input type="text" name="id_auctioneer" class="form-control input-md" placeholder="1 2 3 4" required="">
+			</div>
+		</div>
+		<!-- Text input item -->
+		<div class="form-group">
+			<label class="col-md-12" for="name">Item </label>
+			<div class="col-md-12">
+				<input type="text" name="item" class="form-control input-md" placeholder="Điện thoại"
+					required="">
+			</div>
+		</div>
+		<!-- Text input setting time out  -->
+		<div class="form-group">
+			<label class="col-md-12" for="name">Time (minutes)</label>
+			<div class="col-md-12">
+				<input type="text" name="opening_time" class="form-control input-md" placeholder="1 2 3"
+					required="">
+			</div>
+		</div>
+		<!-- Text input auctioneer name-->
+		<div class="form-group">
+			<label class="col-md-12" for="name">Auctioneer</label>
+			<div class="col-md-12">
+				<input type="text" name="auctioneer" class="form-control input-md" placeholder="Trần Văn A"
+					required="">
+			</div>
+		</div>
+		<br/>
+		<!-- Button (Double) -->
+		<div class="form-group">
+			<label class="col-md-12 control-label" for="submit"></label>
+			<div class="col-md-12">
+				<input name="submit" type="submit" value="Submit" class="themeBtn2">
+			</div>
+		</div>
 	</form>
 	<hr />
-
-
-	<br>
-
-	<a href="/mine"><button>Request to mine</button></a>
-	<a href="/"><button>Resync</button></a>
-	<a href="#"><button>Update</button></a>
-	<a href="/pending_tx"><button>Pending transaction</button></a>
-	<a href="#"><button>List node</button></a>
+	<center>
+		<a href="/mine" target="_blank"><button type="button" class="themeBtn">Request to mine</button></a>
+		<a href="/"><button type="button" class="themeBtn">Resync</button></a>
+		<a href="/update_chaincode"><button type="button" class="themeBtn">Update</button></a>
+		<a href="/pending_tx" target="_blank"><button type=" button" class="themeBtn">Pending Transaction</button></a>
+		<a href="/list_nodes" target="_blank"><button type="button" class="themeBtn">List Node</button></a>
+	</center>
+	<center>
+		<p style="color:red">Nhấn nút mine để lưu các hành động</p>
+	</center>
 	<hr />
-	<div style="margin: 20px;"></div>
+	<center>
+		<h2> -------------------Auction---------------------</h2>
+	</center>
+
+	{% for post in posts %}
+	<div class="container">
+		<div class="row">
+			<div class="post_box-header col-md-12">
+				<div style="background: rgb(0, 97, 146) none repeat scroll 0% 0%; box-shadow: rgb(0, 97, 146) 0px 0px 0px 2px;"
+					class="post_box-avatar">{{post.auctioneer[0]}}
+				</div>
+				<div class="item-bidder name-header">{{post.auctioneer}}</div>
+				<div class="item-bidder post_box-subtitle"> Posted at <i>{{readable_time(post.timestamp)}}</i></div>
+				{% if post.status == 'closed' %}
+				<div class="item-bidder">Id Auctioneer: {{post.id_auctioneer}}</div>
+				{% endif %}
+				<div class="item-bidder">Item: {{post.item}}</div>
+				<div class="item-bidder">Current price : {{post.price_bidder}} USD</div>
+				<div class="item-bidder">Id Bidder: {{post.id_bidder}}</div>
 	
-    {% for post in posts %}
-    <div class="post_box">
-	   <div class="post_box-header">
-	    	<div style="background: rgb(0, 97, 146) none repeat scroll 0% 0%; box-shadow: rgb(0, 97, 146) 0px 0px 0px 2px;" class="post_box-avatar">{{post.auctioneer[0]}}</div>
-	    	<div class="name-header">{{post.auctioneer}}</div>
-			<div class="post_box-subtitle"> Posted at <i>{{readable_time(post.timestamp)}}</i></div>
-			<div>item: {{post.item}}</div>
-			<div>Current price : {{post.price_bidder}}</div>
-			<div>id bidder: {{post.id_bidder}}</div>
-	   </div>
-	   <div>
-	      <div>
-			 <form action="/auctioning" id="form_auctioning" method="POST">
-				<input type="text" name="id_auctioneer" value="{{post.id_auctioneer}}">
-				<input type="text" name="id_bidder" placeholder="Id bidder">
-				<input type="text" name="price_bidder" placeholder="Price"> <br />
-				<input type="submit" name="send" value="Send">
-			 </form>
-	      </div>
-	   </div>
+				
+			</div>
+		</div>
+		{% if post.status != 'closed' %}
+		<div class="col-md-12">
+				<form class="form-horizontal" action="/auctioning" id="form_auctioning" method="POST">
+					<div>
+						<span style="padding-left: 40px;">id Auctioneer</span>
+						<input style="border: none; width: 50px;" type="text" name="id_auctioneer" value="{{post.id_auctioneer}}" readonly>
+					</div>
+					<br />
+					<div class="form-group">
+						<label class="col-md-12" for="name">Id Bidder</label>
+						<div class="col-md-12">
+							<input type="text" name="id_bidder" class="form-control input-md" placeholder="1 2 3">
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-md-12" for="name">Price bidder (USD)</label>
+						<div class="col-md-12">
+							<input type="text" name="price_bidder" class="form-control input-md" placeholder="12">
+						</div>
+					</div>
+					<input type="submit" name="send" class="themeBtn2" value="Send">
+				</form>
+		</div>
+		<div class="post_box-options">
+			<a href="/close_auction?id_auctioneer={{post.id_auctioneer}}">
+				<button type="button" class="btn btn-danger btn-circle">
+					<i class="glyphicon glyphicon-remove"></i>
+				</button>
+			</a>
+		</div>
+		{% endif %}
 	</div>
+	<hr />
 	{% endfor %}
 
 	<style>
@@ -118,6 +177,192 @@
 		    margin-right: 2px;
 		    outline: none;
 		    height: 42px;
+		}
+		.post_box-options {
+		    float: right;
+		}
+
+		.panel-shadow {
+		    box-shadow: rgba(0, 0, 0, 0.3) 7px 7px 7px;
+		}
+		.panel-white {
+		  border: 1px solid #dddddd;
+		}
+		.panel-white  .panel-heading {
+		  color: #333;
+		  background-color: #fff;
+		  border-color: #ddd;
+		}
+		.panel-white  .panel-footer {
+		  background-color: #fff;
+		  border-color: #ddd;
+		}
+
+		.post .post-heading {
+		  height: 95px;
+		  padding: 20px 15px;
+		}
+		.post .post-heading .avatar {
+		  width: 60px;
+		  height: 60px;
+		  display: block;
+		  margin-right: 15px;
+		}
+		.post .post-heading .meta .title {
+		  margin-bottom: 0;
+		}
+		.post .post-heading .meta .title a {
+		  color: black;
+		}
+		.post .post-heading .meta .title a:hover {
+		  color: #aaaaaa;
+		}
+		.post .post-heading .meta .time {
+		  margin-top: 8px;
+		  color: #999;
+		}
+		.post .post-image .image {
+		  width: 100%;
+		  height: auto;
+		}
+		.post .post-description {
+		  padding: 15px;
+		}
+		.post .post-description p {
+		  font-size: 14px;
+		}
+		.post .post-description .stats {
+		  margin-top: 20px;
+		}
+		.post .post-description .stats .stat-item {
+		  display: inline-block;
+		  margin-right: 15px;
+		}
+		.post .post-description .stats .stat-item .icon {
+		  margin-right: 8px;
+		}
+		.post .post-footer {
+		  border-top: 1px solid #ddd;
+		  padding: 15px;
+		}
+		.post .post-footer .input-group-addon a {
+		  color: #454545;
+		}
+		.post .post-footer .comments-list {
+		  padding: 0;
+		  margin-top: 20px;
+		  list-style-type: none;
+		}
+		.post .post-footer .comments-list .comment {
+		  display: block;
+		  width: 100%;
+		  margin: 20px 0;
+		}
+		.post .post-footer .comments-list .comment .avatar {
+		  width: 35px;
+		  height: 35px;
+		}
+		.post .post-footer .comments-list .comment .comment-heading {
+		  display: block;
+		  width: 100%;
+		}
+		.post .post-footer .comments-list .comment .comment-heading .user {
+		  font-size: 14px;
+		  font-weight: bold;
+		  display: inline;
+	
+		  margin-right: 10px;
+		}
+		.post .post-footer .comments-list .comment .comment-heading .time {
+		  font-size: 12px;
+		  color: #aaa;
+	
+		  display: inline;
+		}
+		.post .post-footer .comments-list .comment .comment-body {
+		  margin-left: 50px;
+		}
+		.post .post-footer .comments-list .comment > .comments-list {
+		  margin-left: 50px;
+		}
+		body{margin:40px;}
+
+		.btn-circle {
+		  width: 30px;
+		  height: 30px;
+		  text-align: center;
+		  padding: 6px 0;
+		  font-size: 12px;
+		  line-height: 1.428571429;
+		  border-radius: 15px;
+		}
+		.btn-circle.btn-lg {
+		  width: 50px;
+		  height: 50px;
+		  padding: 10px 16px;
+		  font-size: 18px;
+		  line-height: 1.33;
+		  border-radius: 25px;
+		}
+		.btn-circle.btn-xl {
+		  width: 70px;
+		  height: 70px;
+		  padding: 10px 16px;
+		  font-size: 24px;
+		  line-height: 1.33;
+		  border-radius: 35px;
+		}
+
+		.margin{
+		    margin-top:20px;    
+		    margin-bottom:20px;
+		}
+
+		.themeBtn {
+		    background: #ff5c00;
+		    color: #ffffff !important;
+		    display: inline-block;
+		    font-size: 15px;
+		    font-weight: 500;
+		    height: 50px;
+		    line-height: 0.8;
+		    padding: 18px 30px;
+		    text-transform: capitalize;
+		    border-radius: 1px;
+		    letter-spacing: 0.5px;
+			border:0px !important;
+			cursor:pointer;
+			border-radius:100px;
+
+		}
+		a:hover{
+		    color: #ffffff;
+		    text-decoration:none;
+		}
+		.themeBtn:hover {
+		    background: rgb(255, 92, 0);
+		    color: #ffffff;
+		    box-shadow: 0 10px 25px -2px rgba(255, 92, 0, 0.6);
+		}
+		.themeBtn2 {
+		    background: #7600ff;
+		    color: #ffffff;
+		    display: inline-block;
+		    font-size: 15px;
+		    font-weight: 400;
+		    height: 40px;
+			line-height: 0px;
+		    padding: 18px 30px;
+			border:0px;
+			cursor:pointer;
+		}
+		.themeBtn2:hover {
+		    background: rgb(118, 0, 255);
+		    color: #ffffff;
+		    box-shadow: 0 10px 25px -2px rgba(118, 0, 255, 0.6);
+		}
+		.item-bidder{
+			padding-left: 54px
 		}
 	</style>
     </div>

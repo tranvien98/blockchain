@@ -1,20 +1,28 @@
 <html>
-  <head>
-    <title>{{ title }}</title>
-  </head>
-  <body>
-    <div><a href="/index">Home</a></div>
-    <center><h1>{{ title }}</h1></center>
-    <hr>
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-    <ul>
+
+<head>
+  <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+  <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+  <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+  <title>{{ title }}</title>
+</head>
+
+<body>
+  <div><a href="/">Home</a></div>
+  <center>
+    <h1>{{ title }}</h1>
+  </center>
+  <hr>
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+  <ul>
     {% for message in messages %}
-        <li>{{ message }} </li>
+    <li>{{ message }} </li>
     {% endfor %}
-    </ul>
-    {% endif %}
-    {% endwith %}
-    {% block content %}{% endblock %}
-  </body>
+  </ul>
+  {% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</body>
+
 </html>

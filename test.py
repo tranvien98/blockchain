@@ -1,3 +1,7 @@
-koo = {}
-koo[1] = "lldsd"
-print(koo.items())
+try:
+    x
+except NameError:
+    x = None
+
+if x is None :
+    print("none")
