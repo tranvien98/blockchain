@@ -4,7 +4,7 @@
 {% block content %}
 	<br>
 	<div class="container">
-		<h2> Post Auction</h2>
+		<h2> Thêm sản phẩm đấu giá</h2>
 	</div>
 	<form class="form-horizontal"action="/submit" method="POST">
 		<!-- Text input id auctioneer-->
@@ -16,23 +16,15 @@
 		</div>
 		<!-- Text input item -->
 		<div class="form-group">
-			<label class="col-md-12" for="name">Item </label>
+			<label class="col-md-12" for="name">Sản phẩm </label>
 			<div class="col-md-12">
 				<input type="text" name="item" class="form-control input-md" placeholder="Phone"
 					required="">
 			</div>
 		</div>
-		<!-- Text input setting time out  -->
-		<div class="form-group">
-			<label class="col-md-12" for="name">Time (minutes)</label>
-			<div class="col-md-12">
-				<input type="text" name="opening_time" class="form-control input-md" placeholder="1 2 3"
-					required="">
-			</div>
-		</div>
 		<!-- Text input auctioneer name-->
 		<div class="form-group">
-			<label class="col-md-12" for="name">Auctioneer</label>
+			<label class="col-md-12" for="name">Tên người bán</label>
 			<div class="col-md-12">
 				<input type="text" name="auctioneer" class="form-control input-md" placeholder="Trần Văn A"
 					required="">
@@ -53,11 +45,11 @@
 		<a href="/"><button type="button" class="themeBtn">Resync</button></a>
 		<a href="/pending_tx" target="_blank"><button type=" button" class="themeBtn">Pending Transaction</button></a>
 		<a href="/list_nodes" target="_blank"><button type="button" class="themeBtn">List Node</button></a>
-		<a href="/update_chaincode"><button type="button" class="themeBtn">Update</button></a>
+		<a href="/update_chaincode"><button type="button" class="themeBtn">Create contract</button></a>
 	</center>
 	<hr />
 	<center>
-		<h2> -------------------Auction---------------------</h2>
+		<h2> -------------------Các cuộc đấu giá đang diễn ra---------------------</h2>
 	</center>
 
 	{% for post in posts %}
@@ -68,16 +60,17 @@
 					class="post_box-avatar">{{post.auctioneer[0]}}
 				</div>
 				<div class="item-bidder name-header">{{post.auctioneer}}</div>
-				<div class="item-bidder post_box-subtitle"> Posted at <i>{{readable_time(post.timestamp)}}</i></div>
+				<div class="item-bidder post_box-subtitle">Đăng vào lúc: <i>{{readable_time(post.timestamp)}}</i></div>
 				{% if post.status != 'closed' %}
-				<div class="item-bidder">Item: {{post.item}}</div>
-				<div class="item-bidder">Current price : {{post.price_bidder}} USD</div>
-				<div class="item-bidder">Id Bidder: {{post.id_bidder}}</div>
+				<div class="item-bidder">Sản phẩm {{post.item}}</div>
+				<div class="item-bidder">Giá bán hiện tại: {{post.price_bidder}} USD</div>
+				<div class="item-bidder">Id của người đấu giá cao nhất: {{post.id_bidder}}</div>
 				{% else %}
-				<div class="item-bidder">Id Auctioneer: {{post.id_auctioneer}}</div>
-				<div class="item-bidder">Sell item:{{post.item}} for id bidder: {{post.id_bidder}}</div>
-				<div class="item-bidder">Price : {{post.price_bidder}} USD</div>
-				
+				<div class="item-bidder" style="color: red">Phiên đấu giá đã kết thúc</div>
+				<div class="item-bidder">Id người thêm sản phẩm: {{post.id_auctioneer}}</div>
+				<div class="item-bidder">Sản phẩm:{{post.item}} được bán cho người có  id: {{post.id_bidder}}</div>
+				<div class="item-bidder">Với giá: {{post.price_bidder}} USD</div>
+
 				{%endif%}
 			</div>
 		</div>
@@ -85,18 +78,18 @@
 		<div class="col-md-12">
 				<form class="form-horizontal" action="/auctioning" id="form_auctioning" method="POST">
 					<div>
-						<span style="padding-left: 40px;">id Auctioneer</span>
+						<span style="padding-left: 40px;">Id người thêm sản phẩm</span>
 						<input style="border: none; width: 50px;" type="text" name="id_auctioneer" value="{{post.id_auctioneer}}" readonly>
 					</div>
 					<br />
 					<div class="form-group">
-						<label class="col-md-12" for="name">Id Bidder</label>
+						<label class="col-md-12" for="name">Id người đấu giá</label>
 						<div class="col-md-12">
 							<input type="text" name="id_bidder" style="border: none; width: 400px;"  value="{{post.id_bidder}}" readonly>
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="col-md-12" for="name">Price bidder (USD)</label>
+						<label class="col-md-12" for="name">Giá định mua: (USD)</label>
 						<div class="col-md-12">
 							<input type="text" name="price_bidder" class="form-control input-md" placeholder="12">
 						</div>

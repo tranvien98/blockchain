@@ -44,7 +44,7 @@ def fetch_posts():
 def index():
     fetch_posts()
     return render_template('index.html',
-                           title='System auction based blockchain',
+                           title='Hệ thống đấu giá dựa trên công nghệ blockchain',
                            posts=posts,
                            node_address=CONNECTED_NODE_ADDRESS,
                            readable_time=timestamp_to_string)
@@ -67,7 +67,6 @@ def submit_textarea():
     """
     id_auctioneer = int(request.form['id_auctioneer'])
     item = request.form['item']
-    opening_time = int(request.form['opening_time'])*60
     auctioneer = request.form['auctioneer']
     author = request.remote_addr
 
@@ -76,7 +75,6 @@ def submit_textarea():
         'content': {
             'id_auctioneer': id_auctioneer,
             'item': item,
-            'opening_time': opening_time,
             'auctioneer': auctioneer,
             'author': author + ':5000',
             'price_bidder' : '0',
