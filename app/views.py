@@ -6,6 +6,7 @@ from flask import Flask
 from flask import render_template, redirect, request, jsonify
 import time
 import string
+import codecs
 __location__ = os.path.realpath(os.path.join(
     os.getcwd(), os.path.dirname(__file__)))
 
@@ -14,8 +15,7 @@ app = Flask(__name__)
 
 # The node with which our application interacts, there can be multiple
 # such nodes as well.
-CONNECTED_NODE_ADDRESS = "http://127.0.0.1:5000"
-CONNECTED_NODE_MINE = "http://127.0.0.1:5002"
+
 
 posts = []
 
@@ -67,7 +67,7 @@ def submit_textarea():
     """
     id_auctioneer = int(request.form['id_auctioneer'])
     item = request.form['item']
-    opening_time = request.form['opening_time']
+    opening_time = int(request.form['opening_time'])*60
     auctioneer = request.form['auctioneer']
     author = request.remote_addr
 
@@ -81,12 +81,14 @@ def submit_textarea():
             'author': author + ':5000',
             'price_bidder' : '0',
             'status': 'opening',
-            'timestamp': time.time()
+            'timestamp': time.time(),
+            'contract': 'run',
+            'connect': CONNECTED_NODE_ADDRESS
         }
     }
 
-    # Submit a transaction
     new_tx_address = "{}/new_transaction".format(CONNECTED_NODE_ADDRESS)
+
 
     requests.post(new_tx_address,
                   json=post_object,
@@ -130,14 +132,13 @@ def auctioning():
 
     author = request.remote_addr
     id_auctioneer = int(request.form['id_auctioneer'])
-    id_bidder = int(request.form['id_bidder'])
     price_bidder = float(request.form['price_bidder'])
 
     post_object = {
         'type': 'auctioning',
         'content': {
             'id_auctioneer' : id_auctioneer,
-            'id_bidder' : id_bidder,
+            'id_bidder': author + ':5000',
             'price_bidder' : price_bidder,
             'author': author + ':5000',
             'timestamp': time.time()
@@ -150,7 +151,19 @@ def auctioning():
     requests.post(new_tx_address,
                   json=post_object,
                   headers={'Content-type': 'application/json'})
+    contract_object = {
+        'type': 'execute',
+        'content': {
+            'contract': 'run',
+            'author': author+ ':5000',
+            'id_auctioneer': id_auctioneer,
+            'connect': CONNECTED_NODE_ADDRESS
+        }
+    }
 
+    requests.post(new_tx_address,
+                  json=contract_object,
+                  headers={'Content-type': 'application/json'})
     return redirect('/')
 
 @app.route('/pending_tx', methods=['GET', 'POST'])
@@ -160,6 +173,34 @@ def get_pending_tx():
     response = requests.get(url)
     data = response.json()
     return jsonify(data)
+
+
+@app.route('/update_chaincode', methods=['GET', 'POST'])
+def update_chaincode():
+    file = os.path.join(__location__, 'smart.py')
+    code = ''
+
+    with codecs.open(file, encoding='utf8', mode='r') as inp:
+        code = inp.read()
+
+    author = request.remote_addr
+
+    post_object = {
+        'type': 'smartcontract',
+        'content': {
+            'code': code,
+            'author': author + ':5000',
+            'timestamp': time.time()
+        }
+    }
+
+    new_tx_address = "{}/new_transaction".format(CONNECTED_NODE_ADDRESS)
+
+    requests.post(new_tx_address,
+                  json=post_object,
+                  headers={'Content-type': 'application/json'})
+
+    return redirect('/')
 def timestamp_to_string(epoch_time):
     return datetime.datetime.fromtimestamp(epoch_time).strftime('%H:%M')
 
@@ -177,4 +218,4 @@ if __name__ == '__main__':
 
     CONNECTED_NODE_ADDRESS = 'http://{}:5000'.format(args.host)
 
-    app.run(host='127.0.0.1', port=port, debug=True, threaded=True)
+    app.run(port=port, debug=True, threaded=True)

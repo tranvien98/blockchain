@@ -60,9 +60,7 @@ def announce_new_block():
 
 @app.route('/broadcast_transaction', methods=['POST'])
 def announce_new_transaction():
-    """
 
-    """
     data = request.get_json()
     if not data:
         return "Invalid data at announce_new_block", 400
@@ -141,7 +139,6 @@ if __name__ == '__main__':
     port = args.port
 
     app.run(port=port, debug=True, threaded=True)
-
 
 
 

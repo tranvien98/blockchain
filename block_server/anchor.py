@@ -20,6 +20,7 @@ def validate_connection():
 	data = request.get_json()
 	request_addr = request.remote_addr
 	print(request_addr)
+	print(request_addr)
 	if not data:
 		return 'Invalid data', 400
 

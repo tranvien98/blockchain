@@ -6,10 +6,11 @@ Chưa làm các service liên quan đến transaction
 - Truy xuất dữ liệu từ block chain 
 - Định nghĩa chain-code (smart contract)
 """
+import sys
 import time
 import requests
 from flask import Flask, jsonify, request
-
+import threading
 from block import Block
 from blockchain import Blockchain
 
@@ -43,7 +44,7 @@ def new_transaction():
 
     url = 'http://{}/broadcast_transaction'.format(orderIp)
     response = requests.post(url, json=tx_data)
-
+ 
     return "Success", 201
 
 
@@ -148,7 +149,6 @@ def mine():
 
     
     for transaction in blockchain.unconfirmed_transactions:
-        print(transaction)
         if not validate_transaction(transaction):
             continue
         new_block.transactions.append(transaction)
@@ -220,6 +220,7 @@ def validate_transaction(transaction):
     global blockchain
     #Kiểm tra quyền của giao dịch
     author = transaction['content']['author']
+    print(author)
     url = 'http://{}/validate_permission'.format(anchorsIp)
     response = requests.post(
         url, json={'peer': author, 'action': transaction['type']})
@@ -233,12 +234,18 @@ def validate_transaction(transaction):
         if id_auctioneer in blockchain.open_auctions:
             return False
         blockchain.open_auctions[id_auctioneer] = transaction['content']
+        blockchain.timeout[id_auctioneer] = True
+        try:
+            thread = threading.Thread(target=blockchain.chain_code[transaction['content']['contract']], args=(
+                lambda: blockchain.timeout[id_auctioneer], transaction['content']['author'], transaction['content']['id_auctioneer'], transaction['content']['connect'], ))
+            thread.start()
+        except :
+            print('Error contract x02')
         return True
     elif transaction['type'].lower() == 'auctioning':
         id_auctioneer = transaction['content']['id_auctioneer']
         if id_auctioneer in blockchain.open_auctions and blockchain.open_auctions[id_auctioneer]['status'] == 'opening':
             price_bidder = transaction['content']['price_bidder']
-       
             try:
                 blockchain.open_auctions[id_auctioneer]['id_bidder']
             except KeyError:
@@ -257,12 +264,35 @@ def validate_transaction(transaction):
         id_auctioneer = transaction['content']['id_auctioneer']
         if id_auctioneer in blockchain.open_auctions and blockchain.open_auctions[id_auctioneer]['author'] == transaction['content']['author'] and blockchain.open_auctions[id_auctioneer]['status'] == 'opening':
             blockchain.open_auctions[id_auctioneer]['status'] = 'closed'
-                
             return True
         return False
+    elif transaction['type'].lower() == 'smartcontract':
+       
+
+        try:
+            exec(transaction['content']['code'],blockchain.chain_code, blockchain.chain_code)
+            return True
+        except:
+            print('Error contract x01')
+            return False
+    elif transaction['type'].lower() == 'execute':
+        id_auctioneer = transaction['content']['id_auctioneer']
+        try:
+            blockchain.timeout[id_auctioneer] = False
+            time.sleep(0.6)
+            blockchain.timeout[id_auctioneer] = True
+            thread = threading.Thread(target=blockchain.chain_code[transaction['content']['contract']], args=(
+                lambda: blockchain.timeout[id_auctioneer], transaction['content']['author'], transaction['content']['id_auctioneer'], transaction['content']['connect'], ))
+            thread.start()
+            return True
+        except:
+            print('Error contract x03')
+            return False
+           
+    
 def compute_open_auctions(block, open_auctions, chain_code):
     for transaction in block.transactions:
-        print(transaction['content'])
+        
         author = transaction['content']['author']
         url = 'http://{}/validate_permission'.format(anchorsIp)
         response = requests.post(
@@ -284,7 +314,7 @@ def compute_open_auctions(block, open_auctions, chain_code):
     return True
 
 
-def join_to_network(anchorsIp):
+def join_network(anchorsIp):
     data = {
         'port' : "5000"
     }
@@ -308,8 +338,8 @@ if __name__ == '__main__':
     port = args.port
 
   
-    while not join_to_network(anchorsIp):
-        print("Let me sleep for 5 seconds")
-        time.sleep(5)
+    while not join_network(anchorsIp):
+        print("Let me sleep for 10 seconds")
+        time.sleep(10)
 
-    app.run(port=port, debug=True, threaded=True)
+    app.run(host='127.0.0.1',port=port, debug=True, threaded=True)
