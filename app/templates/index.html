@@ -4,52 +4,53 @@
 {% block content %}
 	<br>
 	<div class="container">
-		<h2> Thêm sản phẩm đấu giá</h2>
+		<div class="row">
+			<div class="col-md-12 col-12">
+				<h3>Add new products</h3>
+				<form action="/submit" class="was-validated" method="POST">
+					<div class="form-group">
+						<label>ID Auctioneer</label>
+						<input type="text" class="form-control" id="id_auctioneer" placeholder="Enter id" name="id_auctioneer" required>
+						<div class="valid-feedback">Valid.</div>
+						<div class="invalid-feedback">Please fill out this field.</div>
+					</div>
+					<div class="form-group">
+						<label>Name</label>
+						<input type="text" class="form-control" id="auctioneer" placeholder="Enter name" name="auctioneer" required>
+						<div class="valid-feedback">Valid.</div>
+						<div class="invalid-feedback">Please fill out this field.
+					</div>
+					<div class="form-group">
+						<label>Product</label>
+						<input type="text" class="form-control" id="item" placeholder="Enter product" name="item" required>
+						<div class="valid-feedback">Valid.</div>
+						<div class="invalid-feedback">Please fill out this field.
+					</div>
+					<div class="form-group">
+						<label>Starting price (USD)</label>
+						<input type="text" class="form-control" id="starting_price" placeholder="Enter starting price"
+									name="starting_price" required>
+						<div class="valid-feedback">Valid.</div>
+						<div class="invalid-feedback">Please fill out this field.
+					</div>
+		
+					<button type="submit" class="btn btn-primary">Submit</button>
+				</form>
+			</div>
+		</div>
+        <hr />
+        <div class="row">
+            <div class="col-md-12 col-12">
+                <a href="/update_chaincode"><button type="button" class="btn btn-outline-dark">Create Contract</button></a>
+                <a href="/mine" target="_blank"><button type="button" class="btn btn-outline-danger">Request to mine</button></a>
+                <a href="/"><button type="button" class="btn btn-outline-success">Resync</button></a>
+            </div>
+        </div>
 	</div>
-	<form class="form-horizontal"action="/submit" method="POST">
-		<!-- Text input id auctioneer-->
-		<div class="form-group">
-			<label class="col-md-12" for="name">ID Auctioneer</label>
-			<div class="col-md-12">
-				<input type="text" name="id_auctioneer" class="form-control input-md" placeholder="1 2 3 4" required="">
-			</div>
-		</div>
-		<!-- Text input item -->
-		<div class="form-group">
-			<label class="col-md-12" for="name">Sản phẩm </label>
-			<div class="col-md-12">
-				<input type="text" name="item" class="form-control input-md" placeholder="Phone"
-					required="">
-			</div>
-		</div>
-		<!-- Text input auctioneer name-->
-		<div class="form-group">
-			<label class="col-md-12" for="name">Tên người bán</label>
-			<div class="col-md-12">
-				<input type="text" name="auctioneer" class="form-control input-md" placeholder="Trần Văn A"
-					required="">
-			</div>
-		</div>
-		<br/>
-		<!-- Button (Double) -->
-		<div class="form-group">
-			<label class="col-md-12 control-label" for="submit"></label>
-			<div class="col-md-12">
-				<input name="submit" type="submit" value="Submit" class="themeBtn2">
-			</div>
-		</div>
-	</form>
-	<hr />
+    <hr />
+
 	<center>
-		<a href="/mine" target="_blank"><button type="button" class="themeBtn">Request to mine</button></a>
-		<a href="/"><button type="button" class="themeBtn">Resync</button></a>
-		<a href="/pending_tx" target="_blank"><button type=" button" class="themeBtn">Pending Transaction</button></a>
-		<a href="/list_nodes" target="_blank"><button type="button" class="themeBtn">List Node</button></a>
-		<a href="/update_chaincode"><button type="button" class="themeBtn">Create contract</button></a>
-	</center>
-	<hr />
-	<center>
-		<h2> -------------------Các cuộc đấu giá đang diễn ra---------------------</h2>
+		<h2> --------------------Auctions are taking place---------------------</h2>
 	</center>
 
 	{% for post in posts %}
@@ -60,49 +61,50 @@
 					class="post_box-avatar">{{post.auctioneer[0]}}
 				</div>
 				<div class="item-bidder name-header">{{post.auctioneer}}</div>
-				<div class="item-bidder post_box-subtitle">Đăng vào lúc: <i>{{readable_time(post.timestamp)}}</i></div>
+				<div class="item-bidder post_box-subtitle">Post at: <i>{{readable_time(post.timestamp)}}</i></div>
 				{% if post.status != 'closed' %}
-				<div class="item-bidder">Sản phẩm {{post.item}}</div>
-				<div class="item-bidder">Giá bán hiện tại: {{post.price_bidder}} USD</div>
-				<div class="item-bidder">Id của người đấu giá cao nhất: {{post.id_bidder}}</div>
+				<div class="item-bidder">Product: {{post.item}}</div>
+				<div class="item-bidder">Current price: {{post.price_bidder}} USD</div>
+				<div class="item-bidder">The highest bidder's id: {{post.id_bidder}}</div>
 				{% else %}
-				<div class="item-bidder" style="color: red">Phiên đấu giá đã kết thúc</div>
-				<div class="item-bidder">Id người thêm sản phẩm: {{post.id_auctioneer}}</div>
-				<div class="item-bidder">Sản phẩm:{{post.item}} được bán cho người có  id: {{post.id_bidder}}</div>
-				<div class="item-bidder">Với giá: {{post.price_bidder}} USD</div>
+				<div class="item-bidder" style="color: red">The auction has ended</div>
+				<div class="item-bidder">Id Auctionner {{post.id_auctioneer}}</div>
+				<div class="item-bidder">{{post.item}} products are sold to  bidder's id : {{post.id_bidder}}</div>
+				<div class="item-bidder">Price: {{post.price_bidder}} USD</div>
 
 				{%endif%}
 			</div>
 		</div>
 		{% if post.status != 'closed' %}
 		<div class="col-md-12">
-				<form class="form-horizontal" action="/auctioning" id="form_auctioning" method="POST">
-					<div>
-						<span style="padding-left: 40px;">Id người thêm sản phẩm</span>
-						<input style="border: none; width: 50px;" type="text" name="id_auctioneer" value="{{post.id_auctioneer}}" readonly>
+            <div class="post_box-options">
+                <a href="/close_auction?id_auctioneer={{post.id_auctioneer}}">
+                    <button type="button" class="btn btn-danger btn-circle">
+                        <i>X</i>
+                    </button>
+                </a>
+            </div>
+			<form class="form-horizontal" action="/auctioning" id="form_auctioning" method="POST">
+				<div>
+					<span style="padding-left: 40px;">Id Auctioneer</span>
+					<input style="border: none; width: 50px;" type="text" name="id_auctioneer" value="{{post.id_auctioneer}}" readonly>
+				</div>
+				<br />
+				<div class="form-group">
+					<label class="col-md-12" for="name">Id Bidder</label>
+					<div class="col-md-12">
+						<input type="text" name="id_bidder" style="border: none; width: 400px;"  value="{{post.id_bidder}}" readonly>
 					</div>
-					<br />
-					<div class="form-group">
-						<label class="col-md-12" for="name">Id người đấu giá</label>
-						<div class="col-md-12">
-							<input type="text" name="id_bidder" style="border: none; width: 400px;"  value="{{post.id_bidder}}" readonly>
-						</div>
+				</div>
+				<div class="form-group">
+					<label class="col-md-12" for="name">Price: (USD)</label>
+					<div class="col-md-12">
+						<input type="text" name="price_bidder" class="form-control input-md" placeholder="12">
 					</div>
-					<div class="form-group">
-						<label class="col-md-12" for="name">Giá định mua: (USD)</label>
-						<div class="col-md-12">
-							<input type="text" name="price_bidder" class="form-control input-md" placeholder="12">
-						</div>
-					</div>
-					<input type="submit" name="send" class="themeBtn2" value="Send">
-				</form>
-		</div>
-		<div class="post_box-options">
-			<a href="/close_auction?id_auctioneer={{post.id_auctioneer}}">
-				<button type="button" class="btn btn-danger btn-circle">
-					<i class="glyphicon glyphicon-remove"></i>
-				</button>
-			</a>
+				</div>
+				<input type="submit" name="send" class="themeBtn2" value="Send">
+            </form>
+                    
 		</div>
 		{% endif %}
 	</div>

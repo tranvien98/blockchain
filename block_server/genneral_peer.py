@@ -233,6 +233,8 @@ def validate_transaction(transaction):
         id_auctioneer = transaction['content']['id_auctioneer']
         if id_auctioneer in blockchain.open_auctions:
             return False
+        if transaction['content']['price_bidder'] < 0:
+            return False
         blockchain.open_auctions[id_auctioneer] = transaction['content']
         blockchain.timeout[id_auctioneer] = True
         try:
@@ -244,6 +246,8 @@ def validate_transaction(transaction):
         return True
     elif transaction['type'].lower() == 'auctioning':
         id_auctioneer = transaction['content']['id_auctioneer']
+        if transaction['content']['price_bidder'] < 0:
+            return False
         if id_auctioneer in blockchain.open_auctions and blockchain.open_auctions[id_auctioneer]['status'] == 'opening':
             price_bidder = transaction['content']['price_bidder']
             try:
@@ -289,7 +293,8 @@ def validate_transaction(transaction):
             print('Error contract x03')
             return False
            
-    
+
+
 def compute_open_auctions(block, open_auctions, chain_code):
     for transaction in block.transactions:
         
@@ -301,9 +306,6 @@ def compute_open_auctions(block, open_auctions, chain_code):
         if response.json()['decision'] != 'accept':
             print("Reject from server")
             return False
-
-    
-
         if transaction['type'].lower() == 'open':
             id_auctioneer = transaction['content']['id_auctioneer']
             if id_auctioneer not in open_auctions:
@@ -334,12 +336,16 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('-p', '--port', default=5000,
                         type=int, help='port to listen on')
+    parser.add_argument('-a', '--anchorsIp', default='127.0.0.1',
+                        type=str, help='port to listen on')
     args = parser.parse_args()
     port = args.port
+    anchorsIp = args.anchorsIp
+    anchorsIp = anchorsIp + ":5001"
 
   
     while not join_network(anchorsIp):
         print("Let me sleep for 10 seconds")
-        time.sleep(10)
+        time.sleep(1)
 
     app.run(host='127.0.0.1',port=port, debug=True, threaded=True)
