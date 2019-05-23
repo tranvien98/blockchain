@@ -178,7 +178,7 @@ def mine():
 def validate_and_add_block():
     global blockchain
 
-    block_data = request.get_json()
+    data_block = request.get_json()
 
     block = Block(data_block['index'], data_block['previous_hash'], data_block['nonce'],
                   data_block['difficult'], data_block['transactions'], data_block['timestamp'])
@@ -192,7 +192,7 @@ def validate_and_add_block():
     blockchain.open_auctions = tmp_open_auctions
     blockchain.chain_code = tmp_chain_code
 
-    proof = block_data['hash']
+    proof = data_block['hash']
     added = blockchain.add_block(block, proof)
 
     if not added:
